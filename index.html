@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/@mdi/font@4.x/css/materialdesignicons.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet" />
+    <link href="style.css" rel="stylesheet" />
+
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui" />
+</head>
+
+<body>
+    <div id="app">
+        <v-app>
+            <v-main>
+                <v-container>
+                    <v-row align="center">
+                        <v-col cols="6">
+                            <v-subheader class="pl-0">
+                                P(H) &nbsp;<small>(<i>prior - how common is H in the population (or the
+                                        sample)</i>)</small>
+                            </v-subheader>
+                            <v-slider v-model="prior" color="#009ee3" track-color="#009ee3" min="0" max="100"
+                                step="0.01" thumb-label="always">
+                                <template v-slot:prepend>
+                                    <v-text-field v-model="prior" class="mt-0 pt-0" type="number" style="width: 60px">
+                                    </v-text-field>
+                                </template>
+                            </v-slider>
+
+                            <v-subheader class="pl-0">
+                                P(E | H) &nbsp;<small>(<i>likelihood - how likely do we see the evidence if H is
+                                        true? E.g. medical test sensitivity</i>)</small>
+                            </v-subheader>
+                            <v-slider min="0" max="100" step="0.01" v-model="likelihood" color="rgba(0, 79, 114, 1)"
+                                track-color="rgba(0, 79, 114, 1)" thumb-label="always">
+                                <template v-slot:prepend>
+                                    <v-text-field v-model="likelihood" class="mt-0 pt-0" type="number"
+                                        style="width: 60px"></v-text-field>
+                                </template>
+                            </v-slider>
+
+                            <v-subheader class="pl-0">
+                                P(E | ¬H) &nbsp;<small>(<i>how likely do we see the evidence if H is not true? E.g.
+                                        false positive rate in medical tests</i>)</small>
+                            </v-subheader>
+                            <v-slider v-model="e_not_h" min="0" max="100" step="0.01" thumb-label="always"
+                                color="rgba(0, 79, 114, 1)" track-color="rgba(0, 79, 114, 1)">
+                                <template v-slot:prepend>
+                                    <v-text-field v-model="e_not_h" class="mt-0 pt-0" type="number" style="width: 60px">
+                                    </v-text-field>
+                                </template>
+                            </v-slider>
+
+                            <v-subheader class="pl-0">
+                                P(H | E) &nbsp;<small>(<i>posterior - how likely is H true given the evidence? E.g.
+                                        how likely am I infected give a positive test result?</i>)</small>
+                            </v-subheader>
+                            <v-slider readonly :value="posterior" color="#a0a0a0" track-color="#a0a0a0" min="0"
+                                max="100" step="0.01" thumb-label="always">
+                                <template v-slot:prepend>
+                                    <v-text-field disabled v-model="posterior" class="mt-0 pt-0" type="number"
+                                        style="width: 60px"></v-text-field>
+                                </template>
+                            </v-slider>
+
+                            <v-subheader class="pl-0">
+                                P(H | ¬E) &nbsp;<small>(<i>how likely is H true if the evidence is absent? E.g. how
+                                        likely am I infected despite my test being negative?</i>)</small>
+                            </v-subheader>
+                            <v-slider readonly :value="p_h_not_e" color="#a0a0a0" track-color="#a0a0a0" min="0"
+                                max="100" step="0.01" thumb-label="always">
+                                <template v-slot:prepend>
+                                    <v-text-field disabled v-model="p_h_not_e" class="mt-0 pt-0" type="number"
+                                        style="width: 60px"></v-text-field>
+                                </template>
+                            </v-slider>
+
+                            <v-subheader class="pl-0">
+                                P(E) &nbsp;<small>(<i>idependent probability of seeing the evidence</i>)</small>
+                            </v-subheader>
+                            <v-slider readonly :value="p_evidence" color="#a0a0a0" track-color="#a0a0a0" min="0"
+                                max="100" step="0.01" thumb-label="always">
+                                <template v-slot:prepend>
+                                    <v-text-field disabled v-model="p_evidence" class="mt-0 pt-0" type="number"
+                                        style="width: 60px"></v-text-field>
+                                </template>
+                            </v-slider>
+                        </v-col>
+
+                        <!-- The visualization -->
+                        <v-col cols="6" align-self="center">
+                            <bayes-canvas :prior="prior" :likelihood="likelihood" :enoth="e_not_h"></bayes-canvas>
+                        </v-col>
+                    </v-row>
+                </v-container>
+            </v-main>
+        </v-app>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.x/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.js"></script>
+    <script src="script.js"></script>
+    <script>
+        new Vue({
+            el: "#app",
+            vuetify: new Vuetify(),
+            data: {
+                prior: 25,
+                likelihood: 95,
+                e_not_h: 2.5
+            },
+            computed: {
+                posterior: function () {
+                    let p =
+                        ((this.likelihood / 100) * this.prior) /
+                        100 /
+                        (((this.likelihood / 100) * this.prior) / 100 +
+                            (this.e_not_h / 100) * (1 - this.prior / 100));
+
+                    return (p * 100.0).toFixed(2);
+                },
+
+                p_evidence: function () {
+                    let p =
+                        ((this.likelihood / 100) * this.prior) / 100 +
+                        (this.e_not_h / 100) * (1 - this.prior / 100);
+
+                    return (p * 100).toFixed(2);
+                },
+
+                p_h_not_e: function () {
+                    let p =
+                        ((this.prior / 100) * (1 - this.likelihood / 100)) /
+                        (1 - this.p_evidence / 100);
+
+                    return (p * 100).toFixed(2);
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>
