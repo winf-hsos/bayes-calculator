@@ -17,7 +17,7 @@
             <v-main>
                 <v-container>
                     <v-row>
-                        <v-col cols="6">
+                        <v-col cols="12" md="6">
                             <v-subheader class="pl-0">
                                 P(H) &nbsp;<small>(<i>prior - how common is H in the population (or the
                                         sample)</i>)</small>
@@ -91,7 +91,7 @@
                         </v-col>
 
                         <!-- The visualization -->
-                        <v-col cols="6" align-self="start">
+                        <v-col cols="12" md="6" align-self="start">
                             <bayes-canvas :prior="prior" :likelihood="likelihood" :enoth="e_not_h"></bayes-canvas>
                         </v-col>
                     </v-row>
