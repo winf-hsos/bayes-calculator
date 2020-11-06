@@ -1,5 +1,13 @@
 /* global Vue */
 
+window.onresize = onResize;
+
+function onResize() {
+    var canvas = document.getElementById('responsive-canvas');
+    var heightRatio = 1;
+    canvas.height = canvas.width * heightRatio;    
+}
+
 function updateCanvas(canvas, prior, likelihood, e_not_h = 25) {
     var ctx = canvas.getContext("2d");
 
@@ -53,5 +61,5 @@ Vue.component("bayes-canvas", {
     },
 
     template:
-        '<canvas width="600px" height="600px" ref="canvas" :test="canvasData"></canvas>'
+        '<canvas id="responsive-canvas" width="600px" height="600px" ref="canvas" :test="canvasData"></canvas>'
 });
